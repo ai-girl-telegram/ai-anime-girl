@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException,Depends,Request
+from fastapi import FastAPI,HTTPException,Depends,Request,Header
 from pydantic import BaseModel
 from typing import List,Optional
 import uvicorn
@@ -39,3 +39,18 @@ def verify_signature(data:dict,signature:str,timestamp:str) -> bool:
 
 #------- SECURITY -------
 
+
+class Start(BaseModel):
+    username:str
+@app.post("/start")
+async def start_user(req:Start,x_signature:str = Header(...),x_timestamp:str = Header(...)):
+    if not verify_signature(req.model_dump(),x_signature,x_timestamp):
+        raise HTTPException(status_code = 401,detail = "Invalid signature")
+    try:
+        pass
+    except Exception as e:
+        raise HTTPException(status_code = 400,detail = f"Error : {e}")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app,host = "0.0.0.0",port = 8080)
