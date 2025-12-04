@@ -8,6 +8,8 @@ import json
 import os
 import time
 from dotenv import load_dotenv
+from database.core import start
+from database.core import start
 
 
 
@@ -47,7 +49,10 @@ async def start_user(req:Start,x_signature:str = Header(...),x_timestamp:str = H
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
         raise HTTPException(status_code = 401,detail = "Invalid signature")
     try:
-        pass
+        res = start(req.username)
+        if res:
+            return res
+        raise HTTPException(status_code = 400,detail = "Start gone wrong")
     except Exception as e:
         raise HTTPException(status_code = 400,detail = f"Error : {e}")
 

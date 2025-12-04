@@ -29,4 +29,22 @@ def start(username:str) -> bool:
             conn.commit()
             return True
         except Exception as e:
-            raise Exception(f"Error : {e}")    
+            raise Exception(f"Error : {e}")   
+
+def remove_free_zapros(username:str) -> bool:
+    if not is_user_exists(username):
+        return False 
+    with sync_engine.connect() as conn:
+        try:
+            stmt = select(table.c.free).where(table.c.username == username)
+            res = conn.execute(stmt)
+            data = res.fetchone()
+            count = int(data[0])
+            if count != 10:
+                count -= 1
+            update_stmt = table.update().where(table.c.username == username).values(free = count) 
+            conn.execute(update_stmt)
+            conn.commit()
+            return True   
+        except Exception as e:
+            raise Exception(f"Error : {e}")       
