@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException,Depends,Request,Header
+from fastapi import FastAPI,HTTPException,Depends,Request,Header,status
 from pydantic import BaseModel
 from typing import List,Optional
 import uvicorn
@@ -8,8 +8,8 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from database.core import start
-from database.core import start
+from database.core import start,remove_free_zapros,check_free_zapros_amount,buy_zaproses
+
 
 
 
@@ -27,7 +27,7 @@ async def safe_get(req:Request):
     api = req.headers.get("X-API-KEY")
     api_main = os.getenv("API")
     if not api or not hmac.compare_digest(api,api_main):
-        raise HTTPException(status_code = 401,detail = "Invalid api key")
+        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid api key")
 
 def verify_signature(data:dict,signature:str,timestamp:str) -> bool:
     if int(time.time()) - int(timestamp) > 300:
@@ -47,15 +47,36 @@ class Start(BaseModel):
 @app.post("/start")
 async def start_user(req:Start,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
-        raise HTTPException(status_code = 401,detail = "Invalid signature")
+        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid signature")
     try:
         res = start(req.username)
         if res:
             return res
-        raise HTTPException(status_code = 400,detail = "Start gone wrong")
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = "Start gone wrong")
     except Exception as e:
-        raise HTTPException(status_code = 400,detail = f"Error : {e}")
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
 
+class Remove_Free_Zapros(BaseModel):
+    username:str
+@app.post("/remove/free")
+async def remove_free(req:Remove_Free_Zapros,x_signature:str = Header(...),x_timestamp:str = Header(...)):
+    if not verify_signature(req.model_dump(),x_signature,x_timestamp):
+        raise HTTPException(status_code = 401,detail = "Invalid signature")
+    try:
+        res = remove_free_zapros(req.username)
+        if res:
+            return res
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = "Went wrong")
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")    
+
+@app.get("/check/free/{username}",dependencies=[Depends(safe_get)])
+async def check_free(username:str):
+    try:
+        res = check_free_zapros_amount(username)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
 
 if __name__ == "__main__":
     uvicorn.run(app,host = "0.0.0.0",port = 8080)
