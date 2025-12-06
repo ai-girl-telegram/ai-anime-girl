@@ -88,9 +88,17 @@ def remove_payed_zapros(username:str) -> bool:
             conn.commit()
             return True
         except Exception as e:
-            raise Exception(f"Error : {e}")        
+            raise Exception(f"Error : {e}")     
+def get_all_data():
+    with sync_engine.connect() as conn:
+        try:
+            stmt = select(table)
+            res = conn.execute(stmt)
+            return res.fetchall()
+        except Exception as e:
+            raise Exception(f"Error : {e}")          
 def debug():
     print(check_free_zapros_amount("user"))
-debug()         
+print(get_all_data())    
           
             
