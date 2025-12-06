@@ -84,6 +84,9 @@ def remove_payed_zapros(username:str) -> bool:
             if not data:
                 return False
             update_stmt = table.update().where(table.c.username == username).values(sub = data - 1)
+            conn.execute(update_stmt)
+            conn.commit()
+            return True
         except Exception as e:
             raise Exception(f"Error : {e}")        
 def debug():

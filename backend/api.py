@@ -54,7 +54,7 @@ async def start_user(req:Start,x_signature:str = Header(...),x_timestamp:str = H
         res = start(req.username)
         if res:
             return res
-        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = "Start gone wrong")
+        raise HTTPException(status_code = status.HTTP_409_CONFLICT,detail = "Start gone wrong")
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
 
@@ -68,7 +68,7 @@ async def remove_free(req:Remove_Free_Zapros,x_signature:str = Header(...),x_tim
         res = remove_free_zapros(req.username)
         if res:
             return res
-        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = "Went wrong")
+        raise HTTPException(status_code = status.HTTP_409_CONFLICT,detail = "Went wrong")
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")    
 
@@ -133,6 +133,20 @@ async def remove_payed(req:RemovePayed_Request,x_signature:str = Header(...),x_t
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")   
 
+class BuyZaproses(BaseModel):
+    username:str
+    amount:int
+@app.post("/buy/zaproses")
+async def buy_zaproses_api(req:BuyZaproses,x_signature:str = Header(...),x_timestamp:str = Header(...)):
+    if not verify_signature(req.model_dump(),x_signature,x_timestamp):
+        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid signature")
+    try:
+        res = buy_zaproses(req.username,req.amount)
+        if res:
+            return res
+        raise HTTPException(status_code = status.HTTP_409_CONFLICT,detail = "Something went wrong")
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")    
 
 
 if __name__ == "__main__":
