@@ -99,6 +99,6 @@ def get_all_data():
             raise Exception(f"Error : {e}")          
 def debug():
     print(check_free_zapros_amount("user"))
-print(get_all_data())    
+
           
             
