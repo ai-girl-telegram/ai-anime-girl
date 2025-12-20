@@ -2,10 +2,10 @@ import requests
 import telebot
 from dotenv import load_dotenv
 import os
-from backend import start
 import json
 import hmac
 import hashlib
+import time
 
 
 load_dotenv()
@@ -27,15 +27,19 @@ def start_api(username:str) -> bool:
         "username":username
     }
     headers = {
-        "X-Signature":generate_siganture(data)
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+
     }
     resp = requests.post(f"{BASE_URL}/start",json = data,headers=headers)
+    print(resp.status_code)
+    print(resp.json())
     return resp.status_code == 200
 
 @bot.message_handler(["start"])
 def start_bot(message):
     user_id = message.from_user.id
-    res = start_api(user_id)
+    res = start_api(str(user_id))
     bot.send_message(message.chat.id,"Welcome")
 
 @bot.message_handler(["chat"])
@@ -43,3 +47,4 @@ def start_chat(message):
     user_id = message.from_user.id
 
 
+bot.polling(non_stop=True)

@@ -1,7 +1,6 @@
-from models import table,metadata_obj
-from sql_i import sync_engine
+from database.models import table,metadata_obj
+from database.sql_i import sync_engine
 from sqlalchemy import text,select
-
 
 def create_table():
     metadata_obj.create_all(sync_engine)
@@ -103,4 +102,5 @@ def get_amount_of_zaproses(username:str) -> int:
         try:
             stmt = select(table.c.zap).where(username == username)
         except Exception as e:
-            return Exception(f"Error : {e}")   
+            return Exception(f"Error : {e}")  
+     
