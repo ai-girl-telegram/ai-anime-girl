@@ -22,8 +22,7 @@ def start(username:str) -> bool:
             stmt = table.insert().values(
                 username = username,
                 balance = 0,
-                sub = 0,
-                free = 10
+                zap = 20
             )
             conn.execute(stmt)
             conn.commit()
@@ -36,7 +35,7 @@ def remove_free_zapros(username:str) -> bool:
         return False 
     with sync_engine.connect() as conn:
         try:
-            stmt = select(table.c.free).where(table.c.username == username)
+            stmt = select(table.c.zap).where(table.c.username == username)
             res = conn.execute(stmt)
             data = res.fetchone()
             count = int(data[0])
@@ -53,7 +52,7 @@ def check_free_zapros_amount(username:str) -> bool:
         return False
     with sync_engine.connect() as conn:
         try:
-            stmt = select(table.c.free).where(table.c.username == username)
+            stmt = select(table.c.zap).where(table.c.username == username)
             res = conn.execute(stmt)
             data = res.fetchone()[0]
             return data > 0
@@ -65,9 +64,9 @@ def buy_zaproses(username:str,amount:int) -> bool:
         return False
     with sync_engine.connect() as conn:
         try:
-            stmt = select(table.c.sub).where(table.c.username == username)
+            stmt = select(table.c.zap).where(table.c.username == username)
             res = conn.execute(stmt).fetchone()[0]
-            update_stmt = table.update().where(table.c.username == username).values(sub = res + amount)
+            update_stmt = table.update().where(table.c.username == username).values(zap = res + amount)
             conn.execute(update_stmt)
             conn.commit()
             return True
@@ -78,12 +77,12 @@ def remove_payed_zapros(username:str) -> bool:
         return False
     with sync_engine.connect() as conn:
         try:
-            stmt = select(table.c.sub).where(table.c.username == username)
+            stmt = select(table.c.zap).where(table.c.username == username)
             res = conn.execute(stmt)
             data = res.fetchone()[0]
             if not data:
                 return False
-            update_stmt = table.update().where(table.c.username == username).values(sub = data - 1)
+            update_stmt = table.update().where(table.c.username == username).values(zap = data - 1)
             conn.execute(update_stmt)
             conn.commit()
             return True
@@ -97,5 +96,11 @@ def get_all_data():
             return res.fetchall()
         except Exception as e:
             raise Exception(f"Error : {e}")          
-
-print(get_all_data())      
+def get_amount_of_zaproses(username:str) -> int:
+    if not is_user_exists(username):
+        return KeyError("User not found")
+    with sync_engine.connect() as conn:
+        try:
+            stmt = select(table.c.zap).where(username == username)
+        except Exception as e:
+            return Exception(f"Error : {e}")   

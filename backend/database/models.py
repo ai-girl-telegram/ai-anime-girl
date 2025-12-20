@@ -8,6 +8,5 @@ table = Table("ai_girl_data",
               metadata_obj,
               Column("username",String,primary_key=True),
               Column("balance",Integer),
-              Column("sub",Integer),
-              Column("free",Integer)
+              Column("zap",Integer)
               )
