@@ -50,8 +50,7 @@ def start_bot(message):
 def ask_ai(username:str,message:str,who_girl:str):
     data = {
         "username":username,
-        "message":message,
-        "who_girl":who_girl
+        "message":message
     }
     headers = {
         "X-Signature":generate_siganture(data),

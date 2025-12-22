@@ -105,7 +105,6 @@ def get_allowed_() -> List[str]:
 class AskAi(BaseModel):
     username:str
     message:str
-    who_girl:str
 @app.post("/ask")
 async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
@@ -114,7 +113,7 @@ async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Heade
         if req.who_girl not in get_allowed_():
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = "AI promt not found")
         messages = [{"role": "system", "content": get_girl_promt(req.who_girl)},
-        {"role": "user", "content": "Привет!"},]
+        {"role": "user", "content": req.message},]
         response = ai.chat(messages)
         return response
     except Exception as e:

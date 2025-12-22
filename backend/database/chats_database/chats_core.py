@@ -38,3 +38,13 @@ def delete_message(message_id:str):
             conn.commit()
         except Exception as e:
             return Exception(f"Error : {e}")        
+def get_all_user_messsages(username:str):
+    with sync_engine.connect() as conn:
+        try:
+            stmt = select(chats_table).where(chats_table.c.username == username)
+            res = conn.execute(stmt)
+            data = res.fetchall()
+            return data 
+        except Exception as e:
+            return Exception(f"Error : {e}")        
+print(get_all_user_messsages("user1"))
