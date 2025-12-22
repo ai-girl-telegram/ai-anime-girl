@@ -9,6 +9,5 @@ chats_table = Table(
     Column("username",String),
     Column("id",String,primary_key=True),
     Column("message",String),
-    Column("files",ARRAY(String)),
     Column("response",String)
 )

@@ -10,7 +10,7 @@ import os
 import time
 from dotenv import load_dotenv
 from database.core import start,remove_free_zapros,check_free_zapros_amount,buy_zaproses,remove_payed_zapros,get_amount_of_zaproses
-from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message
+from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message,create_table,get_all_data
 
 
 
@@ -105,7 +105,7 @@ def get_allowed_() -> List[str]:
 class AskAi(BaseModel):
     username:str
     message:str
-    files:List[str]
+    text_form_files:str
 @app.post("/ask")
 async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
@@ -113,10 +113,10 @@ async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Heade
     try:
         if req.who_girl not in get_allowed_():
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = "AI promt not found")
-        messages = [{"role": "system", "content": get_girl_promt(req.who_girl)},
+        messages = [{"role": "system", "content": f""},
         {"role": "user", "content": req.message},]
         response = ai.chat(messages)
-        write_message(req.username,req.message,response,req.files)
+        write_message(req.username,req.message + " " + req.text_form_files,response)
         return response
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = "Invalid signature")       
@@ -159,6 +159,8 @@ async def get_user_req(req:GetUserZap,x_signature:str = Header(...),x_timestamp:
         return amount > 0
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")    
+
+
 
 if __name__ == "__main__":
     uvicorn.run(app,host = "0.0.0.0",port = 8080)

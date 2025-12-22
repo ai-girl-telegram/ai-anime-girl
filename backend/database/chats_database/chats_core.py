@@ -6,6 +6,7 @@ import uuid
 
 
 def create_table():
+    metadata_obj.drop_all(sync_engine)
     metadata_obj.create_all(sync_engine)
 
 def get_all_data():
@@ -16,14 +17,13 @@ def get_all_data():
             return res.fetchall()
         except Exception as e:
             raise Exception(f"Error : {e}")      
-def write_message(username:str,message:str,response:str,files:Optional[List[str]]):
+def write_message(username:str,message:str,response:str):
     with sync_engine.connect() as conn:
         try:
             stmt = chats_table.insert().values(
                 username = username,
                 id = str(uuid.uuid4()),
                 message = message,
-                files = files,
                 response = response
             )
             conn.execute(stmt)
