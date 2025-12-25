@@ -113,7 +113,7 @@ async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Heade
     try:
         if req.who_girl not in get_allowed_():
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = "AI promt not found")
-        messages = [{"role": "system", "content": f""},
+        messages = [{"role": "system", "content": f"Ты модель chat gpt 5 и отвечаешь на русском языке, вот история сообщений польщователя : {get_all_user_messsages(req.username)}"},
         {"role": "user", "content": req.message},]
         response = ai.chat(messages)
         write_message(req.username,req.message + " " + req.text_form_files,response)
