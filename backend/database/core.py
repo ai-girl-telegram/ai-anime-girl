@@ -1,6 +1,7 @@
 from database.models import table,metadata_obj
 from database.sql_i import sync_engine
 from sqlalchemy import text,select
+from datetime import datetime,timedelta
 
 def create_table():
     metadata_obj.create_all(sync_engine)
@@ -21,7 +22,9 @@ def start(username:str) -> bool:
             stmt = table.insert().values(
                 username = username,
                 balance = 0,
-                zap = 20
+                zap = 20,
+                sub = False,
+                date = ""
             )
             conn.execute(stmt)
             conn.commit()
@@ -107,4 +110,22 @@ def get_amount_of_zaproses(username:str) -> int:
                 return int(data[0])
         except Exception as e:
             return Exception(f"Error : {e}")  
-     
+def subscribe(username:str):
+    with sync_engine.connect() as conn:
+        try:
+            date_exp = datetime.now().date() + timedelta(days=30)
+            stmt = table.update().where(table.c.username == username).values(sub = True,date = str(date_exp))
+            conn.execute(stmt)
+            conn.commit()
+        except Exception as e:
+            return Exception(f"Error : {e}")
+def set_sub_bac_to_false(username:str):
+     with sync_engine.connect() as conn:
+        try:
+            stmt = table.update().where(table.c.username == username).values(sub = False,date = "")
+            conn.execute(stmt)
+            conn.commit()
+        except Exception as e:
+            return Exception(f"Error : {e}")
+            
+            
