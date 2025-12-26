@@ -29,5 +29,8 @@ def start(username:str) -> bool:
     }
     resp = requests.post(url,json = data,headers= headers)
     return resp.status_code == 200
-
-
+def is_user_subed(username:str):
+    try:
+        pass
+    except Exception as e:
+        raise Exception(f"Error : {e}")

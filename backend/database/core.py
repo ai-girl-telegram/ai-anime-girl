@@ -135,6 +135,7 @@ def is_user_subbed(username:str) -> bool:
             data = res.fetchall()
             if data is not None:
                 return bool(data[0])
+            return 0
         except Exception as e:
             return Exception(f"Error : {e}")        
             

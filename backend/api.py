@@ -9,7 +9,7 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from database.core import start,remove_free_zapros,check_free_zapros_amount,buy_zaproses,remove_payed_zapros,get_amount_of_zaproses
+from database.core import start,remove_free_zapros,check_free_zapros_amount,buy_zaproses,remove_payed_zapros,get_amount_of_zaproses,is_user_subbed
 from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message,create_table,get_all_data
 
 
@@ -160,7 +160,19 @@ async def get_user_req(req:GetUserZap,x_signature:str = Header(...),x_timestamp:
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")    
 
-
+class IsUserSubed(BaseModel):
+    username:str
+@app.post("/is_user_subbed")
+async def is_user_subbed_api(req:IsUserSubed,x_signature:str = Header(...),x_timestamp:str = Header(...)):
+    if not verify_signature(req.model_dump(),x_signature,x_timestamp):
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Invalid signature")
+    try:
+        res = is_user_subbed(req.username)
+        if type(res) == bool:
+            return res
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail  = "User not found")
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error  : {e}")    
 
 if __name__ == "__main__":
     uvicorn.run(app,host = "0.0.0.0",port = 8080)
