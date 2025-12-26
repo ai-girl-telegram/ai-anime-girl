@@ -127,5 +127,14 @@ def set_sub_bac_to_false(username:str):
             conn.commit()
         except Exception as e:
             return Exception(f"Error : {e}")
-            
+def is_user_subbed(username:str) -> bool:
+    with sync_engine.connect() as conn:
+        try:
+            stmt = select(table.c.sub).where(table.c.username == username)
+            res = conn.execute(stmt)
+            data = res.fetchall()
+            if data is not None:
+                return bool(data[0])
+        except Exception as e:
+            return Exception(f"Error : {e}")        
             
