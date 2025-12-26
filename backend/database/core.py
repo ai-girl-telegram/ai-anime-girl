@@ -1,20 +1,45 @@
-from database.models import table,metadata_obj
-from database.sql_i import sync_engine
 from sqlalchemy import text,select,and_
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from datetime import datetime,timedelta
 from typing import List
+from sqlalchemy.orm import sessionmaker
+import asyncpg
+import os
+from dotenv import load_dotenv
+from database.models import metadata_obj,table
 
-def create_table():
-    #metadata_obj.drop_all(sync_engine)
-    metadata_obj.create_all(sync_engine)
+load_dotenv()
 
 
-def is_user_exists(username:str) -> bool:
-    with sync_engine.connect() as conn:
-        stmt = select(text("COUNT(1)")).where(table.c.username == username)
-        res = conn.execute(stmt)
-        count = res.scalar()
-        return count > 0 if count else False
+async_engine = create_async_engine(
+    f"postgresql+asyncpg://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@localhost:5432/ai_girl",
+    pool_size=20,           # Размер пула соединений
+    max_overflow=50,        # Максимальное количество соединений
+    pool_recycle=3600,      # Пересоздавать соединения каждый час
+    pool_pre_ping=True,     # Проверять соединение перед использованием
+    echo=False
+)
+
+
+AsyncSessionLocal = sessionmaker(
+    async_engine, 
+    class_=AsyncSession,
+    expire_on_commit=False
+)
+
+async def create_table():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(metadata_obj.create_all)
+
+        
+async def is_user_exists(username:str) -> bool:
+   async with AsyncSession(async_engine) as conn:
+       stmt = select(table.c.username).where(table.c.username == username)
+       res = await conn.execute(stmt)
+       data = res.scalar_one_or_none()
+       if data is not None:
+           return True
+       return False 
 
 def start(username:str) -> bool:
     if is_user_exists(username):
@@ -173,3 +198,4 @@ def unsub_all_users_whos_sub_is_ending_today() -> List[str]:
             # havent writen yet (tired)
         except Exception as e:
             return Exception(f"Error : {e}")    
+        

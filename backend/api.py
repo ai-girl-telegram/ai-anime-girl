@@ -9,9 +9,9 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from database.core import start,remove_free_zapros,check_free_zapros_amount,buy_zaproses,remove_payed_zapros,get_amount_of_zaproses,is_user_subbed,create_table,get_all_data,get_me,subscribe
+from database.core import start,remove_free_zapros,check_free_zapros_amount,buy_zaproses,remove_payed_zapros,get_amount_of_zaproses,is_user_subbed,create_table,get_all_data,get_me,subscribe,is_user_exists
 from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message
-
+import asyncio
 
 
 load_dotenv()
@@ -198,7 +198,10 @@ async def get_me_api(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
 
-print(get_all_data())
+async def test():
+    res = await is_user_exists("ivan")
+    return res
+print(asyncio.run(test())) 
 
 if __name__ == "__main__":
     uvicorn.run(app,host = "0.0.0.0",port = 8080)
