@@ -46,4 +46,3 @@ def is_user_subed(username:str):
             return resp.json()["res"]
     except Exception as e:
         raise Exception(f"Error : {e}")
-print(start("ivan_user_test1"))

@@ -46,4 +46,12 @@ def get_all_user_messsages(username:str):
             data = res.fetchall()
             return data 
         except Exception as e:
-            return Exception(f"Error : {e}")        
+            return Exception(f"Error : {e}")   
+def delete_all_messages(username:str):
+    with sync_engine.connect() as conn:
+        try:
+            stmt = delete(chats_table).where(chats_table.c.username == username)
+            conn.execute(stmt)
+            conn.commit()
+        except Exception as e:
+            return Exception(f"Error : {e}")             

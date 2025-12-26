@@ -17,6 +17,7 @@ from database.chats_database.chats_core import write_message,get_all_user_messsa
 load_dotenv()
 app = FastAPI()
 ai = OllamaAPI()
+print(get_all_data())
 
 
 
