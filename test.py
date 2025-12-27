@@ -49,4 +49,3 @@ def subscribe_user(username:str):
             print(resp.text)
             print(resp.status_code)
             return resp.json()
-print(subscribe_user("ivan89"))
