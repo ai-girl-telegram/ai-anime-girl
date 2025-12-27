@@ -1,1 +1,1 @@
-# BBGchatGPT
+# BBG-ChatGPT
