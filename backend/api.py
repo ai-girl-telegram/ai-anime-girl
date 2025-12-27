@@ -80,6 +80,8 @@ async def check_free(username:str):
         return res
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
+    
+    
 def get_girl_promt(name:str) -> bool:
     try:
         with open("json/gr.json","r") as file:
