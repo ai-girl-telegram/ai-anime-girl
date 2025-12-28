@@ -82,9 +82,9 @@ async def cmd_start(message: types.Message, state: FSMContext):
     except Exception as e:
         await message.answer(f"Error: {e}")
 
-@profile_router.callback_query(F.data == "profile")
-async def profile(callback: types.CallbackQuery):
+# @profile_router.callback_query(F.data == "profile")
+# async def profile(callback: types.CallbackQuery):
     
-@chat_router.callback_query(F.data == "chat")
-async def chat(callback: types.CallbackQuery):
+# @chat_router.callback_query(F.data == "chat")
+# async def chat(callback: types.CallbackQuery):
     
