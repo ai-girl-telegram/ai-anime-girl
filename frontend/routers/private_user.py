@@ -26,20 +26,11 @@ from common.start_text import START
 load_dotenv()
 BASE_URl = "http://0.0.0.0:8080"
 
+# Session for Bot's Telegram API requests
+bot_session = AiohttpSession()
 
-def get_kb_start() -> InlineKeyboardMarkup:
-    """Create keyboard for terms acceptance."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="Профиль ", callback_data="profile"),
-            InlineKeyboardButton(text="Чат", callback_data="chat")
-        ],
-        [
-             InlineKeyboardButton(text="Выбор модели ", callback_data="model"),
-        ]
-        
-    ])
-
+# Global session for backend API requests (will be initialized in app.py)
+backend_session: aiohttp.ClientSession = None
 
 # Routers
 start_router = Router()
@@ -54,4 +45,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
         reply_markup=get_kb_start()
     )
 
-@profile_router.callback_query(F.data == "")
+@profile_router.callback_query(F.data == "profile")
+async def play_target(callback: types.CallbackQuery):
+    
