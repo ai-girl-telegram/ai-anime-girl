@@ -13,6 +13,21 @@ from database.core import remove_free_zapros,check_free_zapros_amount,buy_zapros
 from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message,delete_all_messages
 import asyncio
 import atexit
+import warnings
+import sys
+
+
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+
+original_excepthook = sys.excepthook
+def custom_excepthook(type, value, traceback):
+    if type == RuntimeError and "Event loop is closed" in str(value):
+        return
+    original_excepthook(type, value, traceback)
+
+sys.excepthook = custom_excepthook
 
 load_dotenv()
 app = FastAPI()
@@ -220,7 +235,7 @@ async def test3():
 async def test4():
     res = await is_user_subbed("ivan2")
     return res
-print(asyncio.run(test2()))
+
 
 if __name__ == "__main__":
     uvicorn.run(app,host = "0.0.0.0",port = 8080)

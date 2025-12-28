@@ -75,3 +75,17 @@ def minus_one_free_zapros(username:str) -> bool:
     resp = requests.post(url,json = data,headers=headers)
     print(resp.json())
     return resp.status_code == 200
+
+
+def is_user_subbed_req(username:str):
+    url = f"{BASE_URl}/is_user_subbed"
+    data = {
+        "username":username
+    }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers= headers)
+    return resp.json()
+print(get_me_request("ivan2"))
