@@ -15,6 +15,7 @@ import asyncio
 import atexit
 import warnings
 import sys
+from openai import OpenAI
 
 
 
@@ -117,6 +118,14 @@ def get_allowed_() -> List[str]:
         raise KeyError(f"Error : {e}")    
 
 
+client = OpenAI(api_key=os.getenv("OPEN_AI"))
+def ask_chat_gpt(request:str) -> str:
+    response = client.responses.create(
+        model = "gpt-5-nano",
+        input = request
+    )
+    return str(response.output_text)
+
 
 class AskAi(BaseModel):
     username:str
@@ -128,11 +137,8 @@ async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Heade
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid signature")
     try:
-        if req.who_girl not in get_allowed_():
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = "AI promt not found")
-        messages = [{"role": "system", "content": f"Ты модель chat gpt 5 и отвечаешь на русском языке, вот история сообщений польщователя : {get_all_user_messsages(req.username)}"},
-        {"role": "user", "content": req.message},]
-        response = ai.chat(messages)
+        total = req.message + " " + req.text_form_files
+        response = ask_chat_gpt(total)
         await write_message(req.username,req.message + " " + req.text_form_files,response)
         return response
     except Exception as e:
