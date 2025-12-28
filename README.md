@@ -1,2 +1,3 @@
-# ai-anime-girl
-(ᴗ͈ˬᴗ͈)ഒ
+<h1 align="center">
+  BBG-ChatGPT
+</h1>

@@ -18,7 +18,7 @@ def generate_siganture(data:dict) -> str:
     return str(expected_signature)
 
 
-def start(username:str) -> bool:
+def start_user(username:str) -> bool:
     url = f"{BASE_URl}/start"
     data = {
         "username":username
@@ -29,25 +29,9 @@ def start(username:str) -> bool:
     }
     resp = requests.post(url,json = data,headers= headers)
     return resp.status_code == 200
-def is_user_subed(username:str):
-    try:
-        url = f"{BASE_URl}/is_user_subbed"
-        data = {
-            "username":username
-        }
-        headers = {
-            "X-Signature":generate_siganture(data),
-            "X-Timestamp":str(int(time.time()))
-        }
-        resp = requests.post(url,json = data,headers=headers)
-        if resp.status_code != 200:
-            return KeyError("Error user not found")
-        else:
-            return resp.json()["res"]
-    except Exception as e:
-        raise Exception(f"Error : {e}")
-def subscribe(username:str):
-    try:
+
+def subscribe_user(username:str):
+    
         url = f"{BASE_URl}/subscribe"
         data = {
             "username":username
@@ -58,10 +42,36 @@ def subscribe(username:str):
         }
         resp = requests.post(url,json = data,headers=headers)
         if resp.status_code != 200:
-            return KeyError("Error user not found")
+            print(resp.text)
+            print(resp.status_code)
+            raise  KeyError("Error user not found")
         else:
             print(resp.text)
+            print(resp.status_code)
             return resp.json()
-    except Exception as e:
-        raise Exception(f"Error : {e}")
-print(subscribe("ivan_user_test1"))
+def get_me_request(username:str):
+    url = f"{BASE_URl}/getme"
+    data = {
+            "username":username
+        }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers=headers)
+    if resp.status_code != 200:
+        return False
+    else:
+        return resp.json()
+def minus_one_free_zapros(username:str) -> bool:
+    url = f"{BASE_URl}/remove/free"
+    data = {
+        "username":username
+    }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers=headers)
+    print(resp.json())
+    return resp.status_code == 200

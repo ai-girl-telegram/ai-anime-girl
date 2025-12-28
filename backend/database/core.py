@@ -7,6 +7,9 @@ import asyncpg
 import os
 from dotenv import load_dotenv
 from database.models import metadata_obj,table
+import asyncio
+import atexit
+
 
 load_dotenv()
 
@@ -41,143 +44,142 @@ async def is_user_exists(username:str) -> bool:
            return True
        return False 
 
-def start(username:str) -> bool:
-    if is_user_exists(username):
+async def create_deafault_user_data(username:str) -> bool:
+    if await is_user_exists(username):
         return False
-    with sync_engine.connect() as conn:
+    async with AsyncSession(async_engine) as conn:
         try:
-            stmt = table.insert().values(
-                username = username,
-                balance = 0,
-                zap = 20,
-                sub = False,
-                date = ""
-            )
-            conn.execute(stmt)
-            conn.commit()
-            return True
+            async with conn.begin():
+                    stmt = table.insert().values(
+                        username = username,
+                        balance = 0,
+                        zap = 20,
+                        sub = False,
+                        date = ""
+                    )
+                    await conn.execute(stmt)
+                    return True
         except Exception as e:
-            raise Exception(f"Error : {e}")   
+            raise Exception(f"Error : {e}")       
 
-def remove_free_zapros(username:str) -> bool:
-    if not is_user_exists(username):
+async def remove_free_zapros(username:str) -> bool:
+    if not await is_user_exists(username):
         return False 
-    with sync_engine.connect() as conn:
-        try:
-            stmt = select(table.c.zap).where(table.c.username == username)
-            res = conn.execute(stmt)
-            data = res.fetchone()
-            count = int(data[0])
-            if count != 10:
-                count -= 1
-            update_stmt = table.update().where(table.c.username == username).values(zap = count) 
-            conn.execute(update_stmt)
-            conn.commit()
-            return True   
-        except Exception as e:
-            raise Exception(f"Error : {e}")   
-def check_free_zapros_amount(username:str) -> bool:
-    if not is_user_exists(username):
+    async with AsyncSession(async_engine) as conn:
+            try:
+                async with conn.begin():
+                        stmt = select(table.c.zap).where(table.c.username == username)
+                        res = await conn.execute(stmt)
+                        data = res.scalar_one_or_none()
+                        count = int(data) if data is not None else 0
+                        if count != 10:
+                            count -= 1
+                        update_stmt = table.update().where(table.c.username == username).values(zap = count) 
+                        await conn.execute(update_stmt)
+                        return True   
+            except Exception as e:
+                raise Exception(f"Error : {e}")       
+       
+async def check_free_zapros_amount(username:str) -> bool:
+    if not await is_user_exists(username):
         return False
-    with sync_engine.connect() as conn:
+    async with AsyncSession(async_engine) as conn:
         try:
             stmt = select(table.c.zap).where(table.c.username == username)
-            res = conn.execute(stmt)
-            data = res.fetchone()[0]
-            return data > 0
+            res = await conn.execute(stmt)
+            data = await res.scalar_one_or_none()
+            data_res = int(data) if data is not None else 0
+            return data_res > 0
         except Exception as e:
             raise Exception(f"Error : {e}")   
 
-def buy_zaproses(username:str,amount:int) -> bool:
-    if not is_user_exists(username):
+async def buy_zaproses(username:str,amount:int) -> bool:
+    if not await is_user_exists(username):
         return False
-    with sync_engine.connect() as conn:
+    async with AsyncSession(async_engine) as conn:
         try:
-            stmt = select(table.c.zap).where(table.c.username == username)
-            res = conn.execute(stmt).fetchone()[0]
-            update_stmt = table.update().where(table.c.username == username).values(zap = res + amount)
-            conn.execute(update_stmt)
-            conn.commit()
-            return True
+            async with conn.begin():
+                stmt = select(table.c.zap).where(table.c.username == username)
+                res = await conn.execute(stmt)
+                data = await res.scalar_one_or_none()
+                data_res = int(data) if data is not None else 0
+                update_stmt = table.update().where(table.c.username == username).values(zap = int(data_res) + amount)
+                await conn.execute(update_stmt)
+                return True
         except Exception as e:
             raise Exception(f"Error : {e}")
-def remove_payed_zapros(username:str) -> bool:
-    if not is_user_exists(username):
-        return False
-    with sync_engine.connect() as conn:
-        try:
-            stmt = select(table.c.zap).where(table.c.username == username)
-            res = conn.execute(stmt)
-            data = res.fetchone()[0]
-            if not data:
-                return False
-            update_stmt = table.update().where(table.c.username == username).values(zap = data - 1)
-            conn.execute(update_stmt)
-            conn.commit()
-            return True
-        except Exception as e:
-            raise Exception(f"Error : {e}")     
-def get_all_data():
-    with sync_engine.connect() as conn:
+
+
+
+async def get_all_data():
+    async with AsyncSession(async_engine) as conn:
         try:
             stmt = select(table)
-            res = conn.execute(stmt)
+            res = await conn.execute(stmt)
             return res.fetchall()
         except Exception as e:
-            raise Exception(f"Error : {e}")          
-def get_amount_of_zaproses(username:str) -> int:
-    if not is_user_exists(username):
+            raise Exception(f"Error : {e}")  
+
+
+
+async def get_amount_of_zaproses(username:str) -> int:
+    if not await is_user_exists(username):
         return KeyError("User not found")
-    with sync_engine.connect() as conn:
+    async with AsyncSession(async_engine) as conn:
         try:
             stmt = select(table.c.zap).where(username == username)
-            res = conn.execute(stmt)
-            data = res.fetchone()
+            res = await conn.execute(stmt)
+            data = res.scalar_one_or_none()
             if data is not None:
                 return int(data[0])
         except Exception as e:
-            return Exception(f"Error : {e}")  
-def subscribe(username:str):
-    is_subbed = is_user_subbed(username)
-    if is_subbed['res']:
-        return
-    with sync_engine.connect() as conn:
+            raise  Exception(f"Error : {e}")  
+        
+
+async def subscribe(username:str):
+    async with AsyncSession(async_engine) as conn:
         try:
-            date_exp = datetime.now().date() + timedelta(days=30)
-            stmt = table.update().where(table.c.username == username).values(sub = True,date = str(date_exp))
-            conn.execute(stmt)
-            conn.commit()
+            async with conn.begin():
+                date_exp = datetime.now().date() + timedelta(days=30)
+                stmt = table.update().where(table.c.username == username).values(sub = True,date = str(date_exp))
+                await conn.execute(stmt)
         except Exception as e:
-            return Exception(f"Error : {e}")
-def set_sub_bac_to_false(username:str):
-     with sync_engine.connect() as conn:
+            raise Exception(f"Error : {e}")
+        
+
+async def set_sub_bac_to_false(username:str):
+    async with AsyncSession(async_engine) as conn:
         try:
-            stmt = table.update().where(table.c.username == username).values(sub = False,date = "")
-            conn.execute(stmt)
-            conn.commit()
+            async with conn.begin():
+                stmt = table.update().where(table.c.username == username).values(sub = False,date = "")
+                await conn.execute(stmt)
         except Exception as e:
-            return Exception(f"Error : {e}")
-def is_user_subbed(username:str) -> bool:
-    with sync_engine.connect() as conn:
+            raise Exception(f"Error : {e}")
+        
+
+async def is_user_subbed(username:str) -> bool:
+    if not await is_user_exists(username):
+        return False
+    async with AsyncSession(async_engine) as conn:
         try:
             stmt = select(table.c.sub).where(table.c.username == username)
-            res = conn.execute(stmt)
-            data = res.fetchall()
+            res = await conn.execute(stmt)
+            data =  res.scalar_one_or_none()
             if data is not None:
-                return {
-                    "res":bool(data[0])
-                }
-            return 0
+               return bool(data)
+            return False
         except Exception as e:
-            return Exception(f"Error : {e}")        
-def get_me(username:str) -> dict:
-    with sync_engine.connect() as conn:
+            raise Exception(f"Error : {e}")  
+
+
+async def get_me(username:str) -> dict:
+    async with AsyncSession(async_engine) as conn:
         try:
             stmt = select(table).where(table.c.username == username)
-            res = conn.execute(stmt)
-            data = res.fetchall()
+            res = await conn.execute(stmt)
+            data =  res.first()
             if data is not None:
-                user_data = data[0]
+                user_data = data
                 return {
                     "username":user_data[0],
                     "free requests":user_data[2],
@@ -185,17 +187,29 @@ def get_me(username:str) -> dict:
                     "date of subscribtion to end":user_data[4]
                 }
         except Exception as e:
-            return Exception(f"Error : {e}") 
-def unsub_all_users_whos_sub_is_ending_today() -> List[str]:           
-    with sync_engine.connect() as conn:
+            raise  Exception(f"Error : {e}") 
+        
+
+async def unsub_all_users_whos_sub_is_ending_today() -> List[str]:           
+    async with AsyncSession(async_engine) as conn:
         try:
             stmt = select(table.c.username).where(and_(
                 table.c.sub == True,
                 table.c.date == datetime.now().date()
             ))
-            res = conn.execute(stmt)
+            res = await conn.execute(stmt)
             data = res.fetchall()
-            # havent writen yet (tired)
+            print(data)
         except Exception as e:
-            return Exception(f"Error : {e}")    
-        
+            raise  Exception(f"Error : {e}")    
+def cleanup():
+    """Очистка при завершении"""
+    try:
+        # Получаем текущий event loop если он есть
+        loop = asyncio.get_event_loop()
+        if not loop.is_closed():
+            # Запускаем dispose в существующем loop
+            loop.run_until_complete(async_engine.dispose())
+    except:
+        pass   
+atexit.register(cleanup)        
