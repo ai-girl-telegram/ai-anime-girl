@@ -81,7 +81,7 @@ async def check_free(username:str):
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
     
-    
+
 def get_girl_promt(name:str) -> bool:
     try:
         with open("json/gr.json","r") as file:
@@ -166,6 +166,15 @@ async def subscibe_api(req:UsernameOnly,x_signature:str = Header(...),x_timestam
         await subscribe(req.username)
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")   
+@app.post("/unsubscribe")
+async def unsub_api(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str = Header(...)):
+    if not verify_signature(req.model_dump(),x_signature,x_timestamp):
+        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid signature")
+    try:
+        pass
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
+
 
 @app.post("/getme")
 async def get_me_api(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str = Header(...)):
