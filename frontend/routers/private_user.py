@@ -45,4 +45,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
         reply_markup=get_kb_start()
     )
 
-@profile_router.callback_query(F.data == "")
+@profile_router.callback_query(F.data == "profile")
+async def play_target(callback: types.CallbackQuery):
+    
