@@ -10,7 +10,7 @@ import os
 import time
 from dotenv import load_dotenv
 from database.core import remove_free_zapros,check_free_zapros_amount,buy_zaproses,get_amount_of_zaproses,is_user_subbed,create_table,get_all_data,get_me,subscribe,is_user_exists,create_deafault_user_data
-from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message
+from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message,delete_all_messages
 import asyncio
 import atexit
 
@@ -166,6 +166,7 @@ async def subscibe_api(req:UsernameOnly,x_signature:str = Header(...),x_timestam
         await subscribe(req.username)
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")   
+    
 @app.post("/unsubscribe")
 async def unsub_api(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
@@ -188,8 +189,15 @@ async def get_me_api(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
 
-
-
+@app.post("/reset")
+async def reset(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str = Header(...)):
+    if not verify_signature(req.model_dump(),x_signature,x_timestamp):
+        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid signature")
+    try:
+        await delete_all_messages(req.username)
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
+    
 async def test1():
     res = await start_user("ivan")
     return res
