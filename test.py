@@ -88,4 +88,16 @@ def is_user_subbed_req(username:str):
     }
     resp = requests.post(url,json = data,headers= headers)
     return resp.json()
-print(get_me_request("ivan2"))
+def unsub_request(username:str):
+    url = f"{BASE_URl}/unsubscribe"
+    data = {
+        "username":username
+    }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers= headers)
+    return resp.json()
+
+
