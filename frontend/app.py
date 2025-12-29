@@ -9,7 +9,6 @@ load_dotenv(find_dotenv())
 TOKEN = os.getenv("TOKEN")
 
 from routers.private_user import start_router, game_router, bot_session
-from routers.admin_user import admin_router
 import routers.private_user as private_user
 
 LOG_FILE = "bot_start_log.txt"
@@ -35,8 +34,8 @@ async def main():
         dp = Dispatcher()
 
         dp.include_router(start_router)
-        dp.include_router(game_router)
-        dp.include_router(admin_router)
+        dp.include_router(profile_router)
+        dp.include_router(chat_router)
 
         await bot.delete_webhook(drop_pending_updates=True)
 
