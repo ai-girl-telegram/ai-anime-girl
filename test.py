@@ -88,6 +88,8 @@ def is_user_subbed_req(username:str):
     }
     resp = requests.post(url,json = data,headers= headers)
     return resp.json()
+
+
 def unsub_request(username:str):
     url = f"{BASE_URl}/unsubscribe"
     data = {
@@ -100,4 +102,14 @@ def unsub_request(username:str):
     resp = requests.post(url,json = data,headers= headers)
     return resp.json()
 
-
+def reset(username:str):
+    url = f"{BASE_URl}/reset"
+    data = {
+        "username":username
+    }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers = headers)
+    return resp.status_code == 200

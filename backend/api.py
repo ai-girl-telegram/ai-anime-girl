@@ -208,6 +208,14 @@ async def is_user_subbed_api(req:UsernameOnly,x_signature:str = Header(...),x_ti
     except Exception as e:
          raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
 
+@app.get("/unsub/all",dependencies=[Depends(safe_get)])
+async def unsub_all_api():
+    try:
+        pass
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
+
+
 @app.post("/getme")
 async def get_me_api(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
@@ -228,7 +236,8 @@ async def reset(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str =
         await delete_all_messages(req.username)
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
-    
+
+
 async def test1():
     res = await start_user("ivan")
     return res
