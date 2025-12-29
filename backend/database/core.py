@@ -199,7 +199,9 @@ async def unsub_all_users_whos_sub_is_ending_today() -> List[str]:
             ))
             res = await conn.execute(stmt)
             data = res.fetchall()
-            print(data)
+            for user in data:
+                username = data[0]
+                
         except Exception as e:
             raise  Exception(f"Error : {e}")    
 def cleanup():
