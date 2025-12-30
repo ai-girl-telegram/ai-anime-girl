@@ -113,3 +113,12 @@ def reset(username:str):
     }
     resp = requests.post(url,json = data,headers = headers)
     return resp.status_code == 200
+
+def unsub_all_request():
+    url = f"{BASE_URl}/unsub/all"
+    headers = {
+        "X-API-KEY":str(os.getenv("API"))
+    }
+    resp = requests.get(url,headers=headers)
+    return resp.json()
+print(is_user_subbed_req("ivan89"))
