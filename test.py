@@ -121,4 +121,20 @@ def unsub_all_request():
     }
     resp = requests.get(url,headers=headers)
     return resp.json()
-print(is_user_subbed_req("ivan89"))
+
+
+
+
+def ask_request(username:str,message:str,text_from_files:str) -> str:
+    url = f"{BASE_URl}/ask"
+    data = {
+        "username":username,
+        "message":message,
+        "text_from_files":text_from_files
+    }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers = headers)
+    return resp.json()
