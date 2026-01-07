@@ -16,6 +16,7 @@ import atexit
 import warnings
 import sys
 from openai import OpenAI
+import requests
 
 
 
@@ -118,13 +119,16 @@ def get_allowed_() -> List[str]:
         raise KeyError(f"Error : {e}")    
 
 
-client = OpenAI(api_key=os.getenv("OPEN_AI"))
+client = OpenAI(api_key=os.getenv("OPEN_AI"),base_url="https://openrouter.ai/api/v1")
+
 def ask_chat_gpt(request:str) -> str:
     response = client.responses.create(
-        model = "gpt-5-nano",
-        input = request
+        model="gpt-5-nano",
+        input=request
     )
-    return str(response.output_text)
+
+    return response.output_text
+
 
 
 class AskAi(BaseModel):
