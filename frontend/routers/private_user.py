@@ -85,6 +85,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
 # @profile_router.callback_query(F.data == "profile")
 # async def profile(callback: types.CallbackQuery):
     
-# @chat_router.callback_query(F.data == "chat")
-# async def chat(callback: types.CallbackQuery):
+@chat_router.callback_query(F.data == "chat")
+async def chat(callback: types.CallbackQuery):
     
