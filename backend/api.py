@@ -134,19 +134,19 @@ def ask_chat_gpt(request:str) -> str:
 class AskAi(BaseModel):
     username:str
     message:str
-    text_form_files:str
+    text_from_files:str
 
 @app.post("/ask")
 async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid signature")
     try:
-        total = req.message + " " + req.text_form_files
+        total = req.message + " " + req.text_from_files
         response = ask_chat_gpt(total)
-        await write_message(req.username,req.message + " " + req.text_form_files,response)
+        await write_message(req.username,total,response)
         return response
     except Exception as e:
-        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = "Invalid signature")       
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")       
     
 
 

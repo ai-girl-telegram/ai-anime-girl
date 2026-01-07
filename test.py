@@ -139,4 +139,5 @@ def ask_request(username:str,message:str,text_from_files:str) -> str:
     resp = requests.post(url,json = data,headers = headers)
     return resp.json()
 
+print(ask_request("ivan89","привет как дела","..."))
 
