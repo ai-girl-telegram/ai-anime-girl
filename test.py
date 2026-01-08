@@ -88,6 +88,8 @@ def is_user_subbed_req(username:str):
     }
     resp = requests.post(url,json = data,headers= headers)
     return resp.json()
+
+
 def unsub_request(username:str):
     url = f"{BASE_URl}/unsubscribe"
     data = {
@@ -100,4 +102,42 @@ def unsub_request(username:str):
     resp = requests.post(url,json = data,headers= headers)
     return resp.json()
 
+def reset(username:str):
+    url = f"{BASE_URl}/reset"
+    data = {
+        "username":username
+    }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers = headers)
+    return resp.status_code == 200
+
+def unsub_all_request():
+    url = f"{BASE_URl}/unsub/all"
+    headers = {
+        "X-API-KEY":str(os.getenv("API"))
+    }
+    resp = requests.get(url,headers=headers)
+    return resp.json()
+
+
+
+
+def ask_request(username:str,message:str,text_from_files:str) -> str:
+    url = f"{BASE_URl}/ask"
+    data = {
+        "username":username,
+        "message":message,
+        "text_from_files":text_from_files
+    }
+    headers = {
+        "X-Signature":generate_siganture(data),
+        "X-Timestamp":str(int(time.time()))
+    }
+    resp = requests.post(url,json = data,headers = headers)
+    return resp.json()
+
+print(ask_request("ivan89","привет как дела","..."))
 

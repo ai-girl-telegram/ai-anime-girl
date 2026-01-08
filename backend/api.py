@@ -9,12 +9,14 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from database.core import remove_free_zapros,check_free_zapros_amount,buy_zaproses,get_amount_of_zaproses,is_user_subbed,create_table,get_all_data,get_me,subscribe,is_user_exists,create_deafault_user_data,set_sub_bac_to_false
+from database.core import remove_free_zapros,check_free_zapros_amount,buy_zaproses,get_amount_of_zaproses,is_user_subbed,create_table,get_all_data,get_me,subscribe,is_user_exists,create_deafault_user_data,set_sub_bac_to_false,unsub_all_users_whos_sub_is_ending_today
 from database.chats_database.chats_core import write_message,get_all_user_messsages,delete_message,delete_all_messages
 import asyncio
 import atexit
 import warnings
 import sys
+from openai import OpenAI
+import requests
 
 
 
@@ -117,26 +119,34 @@ def get_allowed_() -> List[str]:
         raise KeyError(f"Error : {e}")    
 
 
+client = OpenAI(api_key=os.getenv("OPEN_AI"),base_url="https://openrouter.ai/api/v1")
+
+def ask_chat_gpt(request:str) -> str:
+    response = client.responses.create(
+        model="gpt-5-nano",
+        input=request
+    )
+
+    return response.output_text
+
+
 
 class AskAi(BaseModel):
     username:str
     message:str
-    text_form_files:str
+    text_from_files:str
 
 @app.post("/ask")
 async def ask_ai(req:AskAi,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid signature")
     try:
-        if req.who_girl not in get_allowed_():
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = "AI promt not found")
-        messages = [{"role": "system", "content": f"Ты модель chat gpt 5 и отвечаешь на русском языке, вот история сообщений польщователя : {get_all_user_messsages(req.username)}"},
-        {"role": "user", "content": req.message},]
-        response = ai.chat(messages)
-        await write_message(req.username,req.message + " " + req.text_form_files,response)
+        total = req.message + " " + req.text_from_files
+        response = ask_chat_gpt(total)
+        await write_message(req.username,total,response)
         return response
     except Exception as e:
-        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = "Invalid signature")       
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")       
     
 
 
@@ -202,6 +212,16 @@ async def is_user_subbed_api(req:UsernameOnly,x_signature:str = Header(...),x_ti
     except Exception as e:
          raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
 
+@app.get("/unsub/all",dependencies=[Depends(safe_get)])
+async def unsub_all_api():
+    try:
+        res =  await unsub_all_users_whos_sub_is_ending_today()
+        return res
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
+    
+
+
 @app.post("/getme")
 async def get_me_api(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str = Header(...)):
     if not verify_signature(req.model_dump(),x_signature,x_timestamp):
@@ -222,7 +242,8 @@ async def reset(req:UsernameOnly,x_signature:str = Header(...),x_timestamp:str =
         await delete_all_messages(req.username)
     except Exception as e:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,detail = f"Error : {e}")
-    
+
+
 async def test1():
     res = await start_user("ivan")
     return res

@@ -190,18 +190,26 @@ async def get_me(username:str) -> dict:
             raise  Exception(f"Error : {e}") 
         
 
-async def unsub_all_users_whos_sub_is_ending_today() -> List[str]:           
+async def unsub_all_users_whos_sub_is_ending_today():           
     async with AsyncSession(async_engine) as conn:
         try:
-            stmt = select(table.c.username).where(and_(
-                table.c.sub == True,
-                table.c.date == datetime.now().date()
-            ))
+            stmt = select(table.c.username).where(table.c.date == str(datetime.now().date()))
+            #stmt = select(table.c.username)
             res = await conn.execute(stmt)
             data = res.fetchall()
-            print(data)
+            usernames = []
+            for user in data:
+                usernames.append(user[0])
+            for user in usernames:
+                try:
+                    await set_sub_bac_to_false(user)
+                except Exception as e:
+                    raise Exception(f"Error while unsub : {e}")
+            return True    
         except Exception as e:
-            raise  Exception(f"Error : {e}")    
+            raise  Exception(f"Error : {e}") 
+
+
 def cleanup():
     """Очистка при завершении"""
     try:
