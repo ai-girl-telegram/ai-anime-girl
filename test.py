@@ -5,6 +5,7 @@ import hashlib
 import requests
 import os
 from dotenv import load_dotenv
+import threading
 
 load_dotenv()
 BASE_URl = "http://0.0.0.0:8080"
@@ -139,5 +140,11 @@ def ask_request(username:str,message:str,text_from_files:str) -> str:
     resp = requests.post(url,json = data,headers = headers)
     return resp.json()
 
-print(ask_request("ivan89","привет как дела","..."))
+def test_ask_request():
+    assert type(ask_request("user1","привет как дела","...")) == str
+
+def run_all_testds():
+    threading.Thread(target = test_ask_request,daemon = True).start()
+    
+
 
