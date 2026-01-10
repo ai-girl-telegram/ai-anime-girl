@@ -87,4 +87,24 @@ async def cmd_start(message: types.Message, state: FSMContext):
     
 @chat_router.callback_query(F.data == "chat")
 async def chat(callback: types.CallbackQuery):
+    # Prepare API request data with signature
+    data = {
+    }
+    # Generate signature
+    data["signature"] = generate_signature(data)
     
+    try: 
+        # Register user using the Python backend endpoint
+        async with backend_session.post(
+            BASE_URL_START,
+            json=data,
+            headers={"Content-Type": "application/json"}
+        ) as response:
+            if response.status == 200:
+                print("User registered successfully.")
+            elif response.status == 404:
+                print("Start gone wrong")
+            elif response.status == 409:
+                print("Error")
+    except Exception as e:
+        await message.answer(f"Error: {e}")
